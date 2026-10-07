@@ -13,11 +13,15 @@
       },
       {
         "question": "a label, added or reworded",
-        "call": "typo3_label_lookup with the XLF resource the code at hand uses; a match elsewhere is not reusable"
+        "call": "typo3_label_lookup with the XLF resource the code at hand uses"
       },
       {
-        "question": "what a version broke, deprecated or added, on a major you have not built on lately",
+        "question": "what a version broke, deprecated or added, on a major new to you",
         "call": "typo3_changelog_lookup"
+      },
+      {
+        "question": "a change on review.typo3.org",
+        "call": "typo3_gerrit_lookup"
       },
       {
         "question": "the commit message, yours as much as the core's, and its branches",
@@ -585,8 +589,8 @@
       "call": "typo3_gerrit_lookup with commit, which answers the change that hash is a patch set of, the backports sharing its Change-Id with the branch each of them targets, and the branches every commit message's Releases: trailer claims"
     },
     {
-      "when": "Reviewing a TYPO3 core patch — the current changes in a core checkout, a commit, or a change fetched from Gerrit — rather than a project or an extension",
-      "call": "typo3_gerrit_lookup with the Change-Id or the change number for what the patch is — the paths it touches, the branch it targets, its commit message and the issue it names — then typo3_rule_lookup per obligation the diff raises, typo3_changelog_lookup for the precedent, typo3_test_run_guide with the changed paths, then typo3_commit_message_guide with workflow=\"core\""
+      "when": "Reviewing a TYPO3 core patch — the current changes in a core checkout, a commit, or a change on Gerrit, a review.typo3.org link included — rather than a project or an extension",
+      "call": "typo3_gerrit_lookup with the Change-Id, the change number or the link for what the patch is — the paths it touches, the branch it targets, its commit message and the issue it names — then typo3_rule_lookup per obligation the diff raises, typo3_changelog_lookup for the precedent, typo3_test_run_guide with the changed paths, then typo3_commit_message_guide with workflow=\"core\""
     },
     {
       "when": "Settling a finding on what a rendering contains rather than on what a diff says — TypoScript defaults, TypoScript declared in an ext_localconf.php or anything below lib.parseFunc, and equally a PHP change to the frontend request pipeline, an error handler or a page renderer caller whose effect is only visible in the response",

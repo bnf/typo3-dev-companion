@@ -4,6 +4,7 @@ What a lookup retrieves, what it withholds, and what a caller may read into a re
 
 See [the decisions readme](../readme.md) for how a session writes an entry and when it adds one.
 
+- [`D-ANS-175`][D-ANS-175] — A review link reaches the review · 2026-10-07
 - [`D-ANS-172`][D-ANS-172] — A modern request over stdio gets the handshake revisions under its id · 2026-10-06
 - [`D-ANS-173`][D-ANS-173] — A Forge issue number goes in as an integer · 2026-10-06
 - [`D-ANS-174`][D-ANS-174] — A branch of an input anyOf defines what it requires · 2026-10-06
@@ -172,6 +173,7 @@ See [the decisions readme](../readme.md) for how a session writes an entry and w
 - [`D-ANS-002`][D-ANS-002] — Rarity, field length and corpus length decide a lookup's rank · 2026-07-30 · confirmed
 - [`D-ANS-003`][D-ANS-003] — Retrieval stays lexical and runtime inspection stays narrow · 2026-07-30 · confirmed
 
+[D-ANS-175]: ans-175-a-review-link-reaches-the-review.md
 [D-ANS-172]: ans-172-a-modern-request-over-stdio-gets-the-handshake-revisions-under-its-id.md
 [D-ANS-173]: ans-173-a-forge-issue-number-goes-in-as-an-integer.md
 [D-ANS-174]: ans-174-a-branch-of-an-input-anyof-defines-what-it-requires.md

@@ -145,8 +145,9 @@ The fourth member is ``instructions``, and it reads:
     What to call for what:
     - backend markup or a CSS class: typo3_component_lookup with the targetVersion
     - a backend icon identifier: typo3_icon_lookup
-    - a label, added or reworded: typo3_label_lookup with the XLF resource the code at hand uses; a match elsewhere is not reusable
-    - what a version broke, deprecated or added, on a major you have not built on lately: typo3_changelog_lookup
+    - a label, added or reworded: typo3_label_lookup with the XLF resource the code at hand uses
+    - what a version broke, deprecated or added, on a major new to you: typo3_changelog_lookup
+    - a change on review.typo3.org: typo3_gerrit_lookup
     - the commit message, yours as much as the core's, and its branches: typo3_commit_message_guide
     - the whole procedure, not one fact out of it: typo3_rule_lookup with a documentId typo3_project_describe lists
 
@@ -158,7 +159,7 @@ The fourth member is ``instructions``, and it reads:
 
     typo3_server_scope says what it covers, by which tool, and which installation it reads. Every tool here is read-only except typo3_feedback_record, which creates a new markdown feedback under feedback/ and writes nothing else.
 
-1,952 characters of the 2,048 a client keeps, ``Coverage::INSTRUCTIONS_BUDGET``.
+1,951 characters of the 2,048 a client keeps, ``Coverage::INSTRUCTIONS_BUDGET``.
 
 The prompts
 -----------

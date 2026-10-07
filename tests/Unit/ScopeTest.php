@@ -453,6 +453,7 @@ final class ScopeTest extends TestCase
      */
     #[Requirement('R-ANS-032')]
     #[Decision('D-AUD-011')]
+    #[Decision('D-ANS-175')]
     #[Test]
     public function theInstructionsIndexTheQuestionEachToolAnswers(): void
     {
@@ -464,6 +465,9 @@ final class ScopeTest extends TestCase
             "the commit message, yours as much as the core's, and its branches: typo3_commit_message_guide",
             $instructions,
         );
+        // A session handed a review link read it with curl, since no entry
+        // named a tool for it — `D-ANS-175`.
+        self::assertStringContainsString('a change on review.typo3.org: typo3_gerrit_lookup', $instructions);
     }
 
     /**

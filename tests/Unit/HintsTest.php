@@ -7149,6 +7149,25 @@ final class HintsTest extends TestCase
     }
 
     /**
+     * A review link routes the core review (`D-ANS-175`).
+     *
+     * Its `/c/Packages/TYPO3.CMS/` read as a package path, and the brief
+     * answered a core review as work outside the core with no skill.
+     */
+    #[Decision('D-ANS-175')]
+    #[Test]
+    public function aReviewLinkRoutesTheCoreReview(): void
+    {
+        $review = Registry::call('typo3_task_guide', [
+            'task' => 'review https://review.typo3.org/c/Packages/TYPO3.CMS/+/86611',
+        ]);
+
+        self::assertSame(['typo3-core-patch-review'], $review->data['skills']);
+        self::assertContains('audit', array_column($review->data['intents'], 'id'));
+        self::assertSame(Scope::Core, Scope::of('', 'review https://review.typo3.org/c/Packages/TYPO3.CMS/+/86611'));
+    }
+
+    /**
      * A backend-module task reaches the skill that owns it (R-SKL-001).
      *
      * The words of `SITE-07` matched `backend-ui` and nothing else, and that

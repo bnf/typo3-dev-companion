@@ -121,3 +121,10 @@ Every lever left is instruction-block characters that do not exist, twenty free
 in the longest assembly. So what goes up is the budget itself, which `D-ANS-004`
 measured on one client and `todo/waiting/T-260819-dcaf.md` carries.
 
+
+## Since then
+
+The third **Wrong if** came close on 2026-10-07. A session handed a review link
+read the change with curl, and the index named no tool for that question
+(`feedback/2026-10-07-070108`). Two cuts paid for the entry, and `D-ANS-175`
+records them. The longest assembly measures 2036 characters.

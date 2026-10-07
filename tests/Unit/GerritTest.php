@@ -2088,6 +2088,46 @@ final class GerritTest extends TestCase
      * one of those readings was right and the change was broken, so the paths
      * alone would leave the same conclusion standing.
      */
+    /** @return array<string, array{string, string}> */
+    public static function handlesACallerPasses(): array
+    {
+        return [
+            'a review link' => ['https://review.typo3.org/c/Packages/TYPO3.CMS/+/86611', '86611'],
+            'a review link to one patch set' => ['https://review.typo3.org/c/Packages/TYPO3.CMS/+/86611/4', '86611'],
+            'a link from the old server' => ['https://review.typo3.org/#/c/48211/', '48211'],
+            'the short form' => ['review.typo3.org/86611', '86611'],
+            'a change number' => ['86611', '86611'],
+            'a Change-Id' => ['I9b8ac06bef1ac2357682aafa98faf3a4a916a9e8', 'I9b8ac06bef1ac2357682aafa98faf3a4a916a9e8'],
+        ];
+    }
+
+    /** A task text hands over the link, and `change:` refuses it (`D-ANS-175`). */
+    #[Decision('D-ANS-175')]
+    #[Test]
+    #[DataProvider('handlesACallerPasses')]
+    public function aReviewLinkIsReadAsTheChangeItNames(string $passed, string $read): void
+    {
+        self::assertSame($read, GerritLookup::changeOf($passed));
+    }
+
+    /** The cause of a conflict is a commit only a checkout has (`D-ANS-175`). */
+    #[Decision('D-ANS-175')]
+    #[Test]
+    public function aChangeThatNoLongerMergesNamesWhereItsCauseIsRead(): void
+    {
+        $stale = ['mergeable' => false, 'commit' => '3be407e3', 'branch' => 'main'];
+
+        $said = implode("\n", GerritLookup::stale($stale, true));
+
+        self::assertStringContainsString('git log --oneline 3be407e3^..origin/main -- <its paths>', $said);
+        self::assertStringContainsString('documentId="core/contribution/rebasing-a-stale-patch"', $said);
+        // Nothing where it merges, where the server did not say, or where a
+        // search answered rather than a read by name.
+        self::assertSame([], GerritLookup::stale(['mergeable' => true] + $stale, true));
+        self::assertSame([], GerritLookup::stale(['mergeable' => null] + $stale, true));
+        self::assertSame([], GerritLookup::stale($stale, false));
+    }
+
     #[Decision('D-ANS-121')]
     #[Test]
     public function theConflictLineSaysTheChangeIsBrokenRatherThanUnreviewed(): void

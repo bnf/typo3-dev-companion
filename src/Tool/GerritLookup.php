@@ -67,7 +67,7 @@ final class GerritLookup extends ReadOnlyTool
                 'change' => [
                     'type' => 'string',
                     'minLength' => 1,
-                    'description' => 'One change to read, by the Change-Id its commit message carries or by the change number a review URL ends with. For example "I0f4c5b9a3e2d1c7b8a6f5e4d3c2b1a0f9e8d7c6b" or "89011". Prefer the Change-Id where the commit is in front of you. It is part of the patch and it survives an amend. A bare change number looks like a Forge issue number, and a Change-Id cannot. Not with issue, commit, query, path or backlog.',
+                    'description' => 'One change to read, by the Change-Id its commit message carries or by the change number, or by the review URL itself. For example "I0f4c5b9a3e2d1c7b8a6f5e4d3c2b1a0f9e8d7c6b", "89011" or "https://review.typo3.org/c/Packages/TYPO3.CMS/+/89011". Prefer the Change-Id where the commit is in front of you. It is part of the patch and it survives an amend. A bare change number looks like a Forge issue number, and a Change-Id cannot. Not with issue, commit, query, path or backlog.',
                 ],
                 'commit' => [
                     'type' => 'string',
@@ -528,6 +528,20 @@ final class GerritLookup extends ReadOnlyTool
     }
 
     /**
+     * The change number a review link names, and anything else unchanged.
+     *
+     * A task text hands over the link, not the number. `change:` with the
+     * whole URL is a query Gerrit answers with HTTP 400. That reads here as a
+     * review server that did not answer (`feedback/2026-10-07-070108`). A
+     * patch set the link names after the number is dropped, because the
+     * answer reads the current one.
+     */
+    public static function changeOf(string $change): string
+    {
+        return preg_match('~review\.typo3\.org/(?:c/\S*?\+/|#/c/)?(\d+)~', $change, $found) === 1 ? $found[1] : $change;
+    }
+
+    /**
      * What an empty answer cannot separate, where it cannot separate anything.
      *
      * A caller that named one change has named something it read somewhere. An
@@ -699,7 +713,7 @@ final class GerritLookup extends ReadOnlyTool
     public static function answer(array $args): ToolResult
     {
         $issue = is_int($args['issue'] ?? null) ? $args['issue'] : 0;
-        $change = is_string($args['change'] ?? null) ? trim($args['change']) : '';
+        $change = is_string($args['change'] ?? null) ? self::changeOf(trim($args['change'])) : '';
         $commit = is_string($args['commit'] ?? null) ? trim($args['commit']) : '';
         $query = is_string($args['query'] ?? null) ? trim($args['query']) : '';
         $path = is_string($args['path'] ?? null) ? trim($args['path']) : '';
@@ -840,7 +854,8 @@ final class GerritLookup extends ReadOnlyTool
                 if ($standing !== '') {
                     $lines[] = $standing;
                 }
-                $lines = [...$lines, ...self::conflicts($entry, $byName), ...self::cherryPick($entry)];
+                $lines = [...$lines, ...self::conflicts($entry, $byName), ...self::stale($entry, $byName)];
+                $lines = [...$lines, ...self::cherryPick($entry)];
                 $lines = [...$lines, ...self::releases($entry)];
                 foreach ($entry['labels'] ?? [] as $label) {
                     // Only where the voters came in. The paragraph this decides
@@ -1472,6 +1487,36 @@ final class GerritLookup extends ReadOnlyTool
                 . 'markers are committed lines in those files and the patch is broken rather than merely '
                 . 'unreviewed.',
             implode(', ', $named),
+        )];
+    }
+
+    /**
+     * Where the cause of a conflict is read, on a change that no longer merges.
+     *
+     * The review server says that the branch moved and never by which commit.
+     * The commit is the finding a review reports, and only a checkout has it
+     * (`feedback/2026-10-07-070108`). So the line hands over the one git call
+     * and the page that carries the rest. Only on a change read by name, where
+     * the commit and its branch are what the caller is about to fetch.
+     *
+     * @param array<string, mixed> $entry
+     * @param bool $read whether the change was read by name
+     * @return list<string>
+     */
+    public static function stale(array $entry, bool $read): array
+    {
+        if (!$read || ($entry['mergeable'] ?? null) !== false || ($entry['commit'] ?? '') === '') {
+            return [];
+        }
+
+        return [sprintf(
+            'It no longer merges into %s. After the fetch, git log --oneline %s^..origin/%s -- <its paths> lists '
+                . 'what landed on those paths since its parent, which is where the conflict comes from. '
+                . 'typo3_rule_lookup with documentId="core/contribution/rebasing-a-stale-patch" carries the rest '
+                . 'of that read.',
+            $entry['branch'],
+            $entry['commit'],
+            $entry['branch'],
         )];
     }
 

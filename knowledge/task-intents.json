@@ -612,6 +612,8 @@
       "review patch",
       "review core patch",
       "review change",
+      "review http",
+      "review https",
       "review only",
       "security review",
       "reviewing the",

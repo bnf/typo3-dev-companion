@@ -225,8 +225,12 @@ enum Scope: string
         if (str_contains($prose, 'typo3/sysext/')) {
             return self::Core;
         }
+        // A URL names a place on another host, not a directory of the work.
+        // Every review link carries `/c/Packages/TYPO3.CMS/`, and that read as
+        // a package path put the review of a core change outside the core.
+        $local = (string) preg_replace('~\bhttps?://\S+~', '', $prose);
         foreach (self::EXTENSION_WORK as $marker) {
-            if (str_contains($prose, $marker)) {
+            if (str_contains($local, $marker)) {
                 return self::Extension;
             }
         }

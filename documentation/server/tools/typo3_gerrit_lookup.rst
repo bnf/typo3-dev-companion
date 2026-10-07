@@ -43,8 +43,9 @@ Takes
     # change, commit, query, path or backlog.
     issue: integer  # optional
     # One change to read, by the Change-Id its commit message carries or by the
-    # change number a review URL ends with. For example
-    # "I0f4c5b9a3e2d1c7b8a6f5e4d3c2b1a0f9e8d7c6b" or "89011". Prefer the Change-Id
+    # change number, or by the review URL itself. For example
+    # "I0f4c5b9a3e2d1c7b8a6f5e4d3c2b1a0f9e8d7c6b", "89011" or
+    # "https://review.typo3.org/c/Packages/TYPO3.CMS/+/89011". Prefer the Change-Id
     # where the commit is in front of you. It is part of the patch and it survives
     # an amend. A bare change number looks like a Forge issue number, and a
     # Change-Id cannot. Not with issue, commit, query, path or backlog.
