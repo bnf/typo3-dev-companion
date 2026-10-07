@@ -221,10 +221,11 @@ configuration. ``--agent=`` does not take ``generic``, because it is nobody's
 name.
 
 Claude Code reads ``.mcp.json`` and not ``.agents/skills``. So the setup without
-a client gives it the server and none of the skills. When Claude Code connects,
-the first line of the server's instructions asks the session to tell you the
-command that fixes it: ``install --agent=claude``. Claude Code shows you neither
-the instructions nor the server's stderr, so the session is the one channel.
+a client gives it the server and none of the skills. Claude Code shows you
+neither the server's instructions nor its stderr, so the server asks the session
+to tell you. The first paragraph of its instructions names the command, and
+every tool answer opens with it until the session ends. Where it knows the
+client, the command carries its ``--agent=``: ``install --agent=claude``.
 
 ===========  ===============  ===========================  ===================
 Client       ``--agent=``     MCP entry                    Skills

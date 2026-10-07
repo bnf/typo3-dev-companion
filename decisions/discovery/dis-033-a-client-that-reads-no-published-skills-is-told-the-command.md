@@ -6,6 +6,7 @@ status: open
 coveredBy:
   - InstallerRecordTest::aClientThatReadsNoPublishedSkillsIsToldTheCommandThatWritesThem
   - ScopeTest::theInstructionsFitWhatAClientKeeps
+  - StdioServerTest::aProjectWithoutSkillsIsToldHowToGetThem
 ---
 
 # D-DIS-033 — A client that reads no published skills is told the command
@@ -75,3 +76,14 @@ The user saw nothing at start, because Claude Code shows its user neither the
 instructions nor stderr. The session passed it on only when the user asked. So
 `UNREAD` now asks the session to tell the user, in the same length. The second
 **Assumed** is now the open question: whether a session says it unasked.
+
+## Since then
+
+The relay failed again on 2026-10-07 (`feedback/2026-10-07-085939`). That
+project had no record at all, so the `ABSENT` notice of `D-DIS-029` spoke. It
+told the session to run the install, which a session may not do on a tool's
+word. The session set it aside and started the task. Both notices now address
+the user and stand as a paragraph of their own. Every tool answer opens with the
+long form: what is missing, the command, what it writes, and to ask first. A
+project without a record now names the client's `--agent=` too.
+

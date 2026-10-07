@@ -16,6 +16,7 @@ use Mcp\Server\Handler\Request\RequestHandlerInterface;
 use Mcp\Server\Session\SessionInterface;
 use TYPO3\DevCompanion\Knowledge\Coverage;
 use TYPO3\DevCompanion\Server\Installer;
+use TYPO3\DevCompanion\Server\MissingSkills;
 
 /**
  * The SDK's own handshake, with instructions that know which client asked.
@@ -50,15 +51,22 @@ final class InitializeHandler implements RequestHandlerInterface
     {
         \assert($request instanceof InitializeRequest);
         $notice = $this->notice;
+        $agent = Installer::agentOf($request->clientInfo->name);
+        // An install without --agent is the setup this client cannot read, so
+        // a project without any names the one that it can.
+        if ($notice === Installer::ABSENT && $agent !== null) {
+            $notice = sprintf(Installer::UNREAD, $agent);
+            MissingSkills::owe('typo3-dev-companion install --agent=' . $agent);
+        }
         if ($notice === '') {
             $notice = Installer::unread($this->project, $request->clientInfo->name);
             // The long form beside it, as the start writes it for a project
             // without skills, for whoever reads the client's server log.
             if ($notice !== '') {
+                MissingSkills::owe('typo3-dev-companion install --agent=' . $agent);
                 fwrite(STDERR, 'typo3-dev-companion: ' . $request->clientInfo->name . ' reads none of the skills '
                     . 'published in ' . $this->project . ', so no typo3-* skill is in its listing. Run '
-                    . 'typo3-dev-companion install --agent=' . Installer::agentOf($request->clientInfo->name)
-                    . ' there.' . "\n");
+                    . 'typo3-dev-companion install --agent=' . $agent . ' there.' . "\n");
             }
         }
 

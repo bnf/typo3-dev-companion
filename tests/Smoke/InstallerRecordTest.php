@@ -28,6 +28,9 @@ final class InstallerRecordTest extends TestCase
     /** What the server wrote to stderr during the last `instructions()`. */
     private string $stderr = '';
 
+    /** The text of the tool answer that followed the handshake there. */
+    private string $answer = '';
+
     #[Test]
     public function updateWithoutAnAgentRefreshesEveryClientInstalledHere(): void
     {
@@ -134,6 +137,7 @@ final class InstallerRecordTest extends TestCase
             // And on stderr, where the start writes the notice for a project
             // without skills.
             self::assertStringContainsString('claude-code reads none of the skills', $this->stderr);
+            self::assertStringContainsString('install --agent=claude in the project root', $this->answer);
             // A client that reads .agents/skills, and one nobody has mapped,
             // hear nothing.
             self::assertStringNotContainsString('--agent=', $this->instructions($directory, 'antigravity-client'));
@@ -347,9 +351,16 @@ final class InstallerRecordTest extends TestCase
             'capabilities' => new \stdClass(),
             'clientInfo' => ['name' => $client, 'version' => '1'],
         ]], JSON_THROW_ON_ERROR);
-        $this->execute($directory, [], $stdout, $stderr, $request . "\n");
-        $response = json_decode(strtok($stdout, "\n") ?: '', true);
+        $call = json_encode(['jsonrpc' => '2.0', 'id' => 2, 'method' => 'tools/call', 'params' => [
+            'name' => 'typo3_server_scope',
+            'arguments' => new \stdClass(),
+        ]], JSON_THROW_ON_ERROR);
+        $this->execute($directory, [], $stdout, $stderr, $request . "\n" . $call . "\n");
+        $lines = explode("\n", trim($stdout));
+        $response = json_decode($lines[0], true);
+        $answer = json_decode($lines[1] ?? '', true);
         $this->stderr = $stderr;
+        $this->answer = is_array($answer) ? (string) ($answer['result']['content'][0]['text'] ?? '') : '';
 
         return is_array($response) ? (string) ($response['result']['instructions'] ?? '') : '';
     }

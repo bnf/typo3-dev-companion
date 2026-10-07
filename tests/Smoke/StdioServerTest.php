@@ -266,6 +266,7 @@ final class StdioServerTest extends TestCase
      * could not tell why — `D-DIS-029`.
      */
     #[Decision('D-DIS-029')]
+    #[Decision('D-DIS-033')]
     #[Test]
     public function aProjectWithoutSkillsIsToldHowToGetThem(): void
     {
@@ -277,14 +278,41 @@ final class StdioServerTest extends TestCase
             'clientInfo' => ['name' => 'phpunit', 'version' => '1'],
         ])];
 
+        // A tool answer carries it too, with what is missing and whose the
+        // command is, because a session reads an answer when it acts —
+        // `D-DIS-033`.
+        $initialize[] = $this->request(2, 'tools/call', ['name' => 'typo3_server_scope', 'arguments' => new \stdClass()]);
+
         $stderr = null;
-        $absent = $this->call($initialize, $this->temporaryRoot, $stderr)[1];
-        self::assertStringStartsWith(Installer::ABSENT, $absent['result']['instructions']);
+        $absent = $this->call($initialize, $this->temporaryRoot, $stderr);
+        self::assertStringStartsWith(Installer::ABSENT, $absent[1]['result']['instructions']);
         self::assertStringContainsString('no task skills are installed in ' . $this->temporaryRoot, (string) $stderr);
+        $answer = (string) $absent[2]['result']['content'][0]['text'];
+        self::assertStringStartsWith('Setup incomplete. Tell the user', $answer);
+        self::assertStringContainsString('run typo3-dev-companion install in the project root', $answer);
+        self::assertStringContainsString('Do not run it without their consent', $answer);
 
         self::assertSame(0, $this->install($this->temporaryRoot));
-        $installed = $this->call($initialize, $this->temporaryRoot, $stderr)[1];
-        self::assertStringNotContainsString(Installer::ABSENT, $installed['result']['instructions']);
+        $installed = $this->call($initialize, $this->temporaryRoot, $stderr);
+        self::assertStringNotContainsString(Installer::ABSENT, $installed[1]['result']['instructions']);
+        self::assertStringNotContainsString('Setup incomplete', (string) $installed[2]['result']['content'][0]['text']);
+
+        // A client known to read skills elsewhere is sent to the install it can
+        // read, because the one without --agent would leave it where it was.
+        $other = $this->temporaryRoot . '/other';
+        self::assertTrue(mkdir($other));
+        $claude = $initialize;
+        $claude[0] = $this->request(1, 'initialize', [
+            'protocolVersion' => self::PROTOCOL_VERSION,
+            'capabilities' => new \stdClass(),
+            'clientInfo' => ['name' => 'claude-code', 'version' => '1'],
+        ]);
+        $absent = $this->call($claude, $other, $stderr);
+        self::assertStringStartsWith(sprintf(Installer::UNREAD, 'claude'), $absent[1]['result']['instructions']);
+        self::assertStringContainsString(
+            'install --agent=claude in the project root',
+            (string) $absent[2]['result']['content'][0]['text'],
+        );
     }
 
     private function install(string $directory): int

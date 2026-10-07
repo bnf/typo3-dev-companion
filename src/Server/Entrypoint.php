@@ -117,6 +117,8 @@ final class Entrypoint
             fwrite(STDERR, 'typo3-dev-companion: no task skills are installed in ' . $project
                 . ', so no typo3-* skill is in a client\'s listing. Run typo3-dev-companion install there.' . "\n");
 
+            MissingSkills::owe('typo3-dev-companion install');
+
             return Installer::ABSENT;
         }
         $outdated = Installer::outdated($project);
