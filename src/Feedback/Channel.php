@@ -9,6 +9,8 @@ use Symfony\Component\Finder\Finder;
 use TYPO3\DevCompanion\Installation\Instance;
 use TYPO3\DevCompanion\Installation\Typo3Cli;
 use TYPO3\DevCompanion\Paths;
+use TYPO3\DevCompanion\Server\CodeAge;
+use TYPO3\DevCompanion\Server\Upstream;
 
 /**
  * Stores improvement feedback from agents that use this server, so a session
@@ -501,6 +503,16 @@ final class Channel
         }
         if ($origin !== '') {
             $frontMatter[] = 'directory: ' . $origin;
+        }
+        // Which code answered, so a feedback says whether a fix was live. A
+        // process older than its checkout ran the code before the commit
+        // named here (`D-FBK-057`).
+        $commit = Upstream::commit();
+        if ($commit !== null) {
+            $frontMatter[] = 'server: ' . $commit;
+            if (CodeAge::isStale()) {
+                $frontMatter[] = 'serverStale: true';
+            }
         }
 
         $document = "---\n" . implode("\n", $frontMatter) . "\n---\n\n";

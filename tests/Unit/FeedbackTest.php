@@ -13,6 +13,7 @@ use TYPO3\DevCompanion\Feedback\Channel;
 use TYPO3\DevCompanion\Feedback\Redaction;
 use TYPO3\DevCompanion\Installation\Instance;
 use TYPO3\DevCompanion\Paths;
+use TYPO3\DevCompanion\Server\Upstream;
 use TYPO3\DevCompanion\Tests\Support\Decision;
 use TYPO3\DevCompanion\Tests\Support\RecordedFeedback;
 use TYPO3\DevCompanion\Tests\Support\Requirement;
@@ -122,6 +123,19 @@ final class FeedbackTest extends TestCase
 
         self::assertCount(1, $listed);
         self::assertSame('/home/somebody/projects/a-site', $listed[0]['directory']);
+    }
+
+    /** A feedback says which code answered, so a fix can be told from a miss (`D-FBK-057`). */
+    #[Decision('D-FBK-057')]
+    #[Test]
+    public function aNoteSaysWhichCommitOfTheServerAnsweredIt(): void
+    {
+        $file = $this->recordFeedback(['observation' => self::MARKER . ' with the server commit']);
+
+        self::assertStringContainsString(
+            'server: ' . Upstream::commit(),
+            (string) file_get_contents($this->inStore($file)),
+        );
     }
 
     #[Test]

@@ -179,6 +179,12 @@ final class Upstream
         return ['state' => $behind > 0 ? 'behind' : 'current', 'behind' => $behind];
     }
 
+    /** The commit this server's checkout stands on, or null where it has no git directory. */
+    public static function commit(): ?string
+    {
+        return self::revision(self::$root ?? Paths::root());
+    }
+
     /**
      * The commit the checkout stands on, read from its git directory without
      * git. A worktree's `.git` is a file that names it, and a branch may sit in
