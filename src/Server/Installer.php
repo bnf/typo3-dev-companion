@@ -324,9 +324,15 @@ final class Installer
      * server reached the session and the skills did not, and nothing said so
      * (`D-DIS-033`). A project without a record is `ABSENT`'s case.
      */
+    /** The `--agent=` value that sets up a client, or null where none is mapped. */
+    public static function agentOf(string $client): ?string
+    {
+        return self::CLIENTS[$client] ?? null;
+    }
+
     public static function unread(string $project, string $client): string
     {
-        $agent = self::CLIENTS[$client] ?? null;
+        $agent = self::agentOf($client);
         if ($agent === null || self::absent($project)) {
             return '';
         }

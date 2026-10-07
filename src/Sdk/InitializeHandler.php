@@ -49,7 +49,18 @@ final class InitializeHandler implements RequestHandlerInterface
     public function handle(Request $request, SessionInterface $session): Response
     {
         \assert($request instanceof InitializeRequest);
-        $notice = $this->notice !== '' ? $this->notice : Installer::unread($this->project, $request->clientInfo->name);
+        $notice = $this->notice;
+        if ($notice === '') {
+            $notice = Installer::unread($this->project, $request->clientInfo->name);
+            // The long form beside it, as the start writes it for a project
+            // without skills, for whoever reads the client's server log.
+            if ($notice !== '') {
+                fwrite(STDERR, 'typo3-dev-companion: ' . $request->clientInfo->name . ' reads none of the skills '
+                    . 'published in ' . $this->project . ', so no typo3-* skill is in its listing. Run '
+                    . 'typo3-dev-companion install --agent=' . Installer::agentOf($request->clientInfo->name)
+                    . ' there.' . "\n");
+            }
+        }
 
         return (new SdkInitializeHandler(new Configuration(
             $this->serverInfo,

@@ -25,6 +25,9 @@ final class InstallerRecordTest extends TestCase
 {
     private const SKILL = 'typo3-backend-module-development';
 
+    /** What the server wrote to stderr during the last `instructions()`. */
+    private string $stderr = '';
+
     #[Test]
     public function updateWithoutAnAgentRefreshesEveryClientInstalledHere(): void
     {
@@ -128,6 +131,9 @@ final class InstallerRecordTest extends TestCase
 
             $unread = sprintf(Installer::UNREAD, 'claude');
             self::assertStringStartsWith($unread, $this->instructions($directory, 'claude-code'));
+            // And on stderr, where the start writes the notice for a project
+            // without skills.
+            self::assertStringContainsString('claude-code reads none of the skills', $this->stderr);
             // A client that reads .agents/skills, and one nobody has mapped,
             // hear nothing.
             self::assertStringNotContainsString('--agent=', $this->instructions($directory, 'antigravity-client'));
@@ -343,6 +349,7 @@ final class InstallerRecordTest extends TestCase
         ]], JSON_THROW_ON_ERROR);
         $this->execute($directory, [], $stdout, $stderr, $request . "\n");
         $response = json_decode(strtok($stdout, "\n") ?: '', true);
+        $this->stderr = $stderr;
 
         return is_array($response) ? (string) ($response['result']['instructions'] ?? '') : '';
     }
