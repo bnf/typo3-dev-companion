@@ -220,6 +220,11 @@ skills at its native project path and, where it supports one, its native MCP
 configuration. ``--agent=`` does not take ``generic``, because it is nobody's
 name.
 
+Claude Code reads ``.mcp.json`` and not ``.agents/skills``. So the setup without
+a client gives it the server and none of the skills. The server says so when
+Claude Code connects, in the first line of its instructions, with the command
+that fixes it: ``install --agent=claude``.
+
 ===========  ===============  ===========================  ===================
 Client       ``--agent=``     MCP entry                    Skills
 ===========  ===============  ===========================  ===================

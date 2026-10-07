@@ -6,6 +6,7 @@ namespace TYPO3\DevCompanion\Server;
 
 use Mcp\Schema\Annotations;
 use Mcp\Schema\Icon;
+use Mcp\Schema\Implementation;
 use Mcp\Schema\ResourceDefinition;
 use Mcp\Schema\ResourceTemplate;
 use Mcp\Schema\ServerCapabilities;
@@ -16,6 +17,7 @@ use TYPO3\DevCompanion\Feedback\Channel;
 use TYPO3\DevCompanion\Knowledge\Coverage;
 use TYPO3\DevCompanion\Knowledge\Documents;
 use TYPO3\DevCompanion\Paths;
+use TYPO3\DevCompanion\Sdk\InitializeHandler;
 use TYPO3\DevCompanion\Sdk\Prompts;
 use TYPO3\DevCompanion\Sdk\ResourceHandler;
 use TYPO3\DevCompanion\Sdk\SkillReferenceHandler;
@@ -65,19 +67,37 @@ final class Factory
      * @param string $notice what is wrong with this project before the first
      *     call, in front of the routing; empty where nothing is
      */
-    public static function create(string $notice = ''): Server
+    public static function create(string $notice = '', string $project = ''): Server
     {
+        $serverInfo = new Implementation(
+            self::SERVER_NAME,
+            self::SERVER_VERSION,
+            self::SERVER_DESCRIPTION,
+            self::icons(),
+            self::SERVER_WEBSITE,
+            self::SERVER_TITLE,
+        );
+        $skills = new SkillsExtension();
         $builder = Server::builder()
             ->setServerInfo(
-                self::SERVER_NAME,
-                self::SERVER_VERSION,
-                self::SERVER_DESCRIPTION,
-                self::icons(),
-                self::SERVER_WEBSITE,
-                self::SERVER_TITLE,
+                $serverInfo->name,
+                $serverInfo->version,
+                $serverInfo->description,
+                $serverInfo->icons,
+                $serverInfo->websiteUrl,
+                $serverInfo->title,
             )
             ->setInstructions(Coverage::instructions($notice))
-            ->setCapabilities(self::capabilities());
+            ->setCapabilities(self::capabilities())
+            // The handshake the builder would answer, with the client folded
+            // into the instructions. The extension is folded in as the builder
+            // folds it into the capabilities it was handed.
+            ->addRequestHandler(new InitializeHandler(
+                $serverInfo,
+                self::capabilities()->withExtensions([(string) $skills->getId() => $skills->getCapabilities()]),
+                $notice,
+                $project,
+            ));
 
         foreach (Registry::definitions() as $definition) {
             // The two schemas as the SDK spells them. A tool declares them as
@@ -131,7 +151,7 @@ final class Factory
             $builder->add($resource, $resourceHandler);
         }
         $builder->add(self::skillReferences(), new SkillReferenceHandler());
-        $builder->enableExtension(new SkillsExtension());
+        $builder->enableExtension($skills);
 
         return $builder->build();
     }

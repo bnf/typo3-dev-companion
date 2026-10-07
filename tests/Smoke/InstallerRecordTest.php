@@ -109,6 +109,37 @@ final class InstallerRecordTest extends TestCase
         }
     }
 
+    /**
+     * The setup that names no client writes the entry Claude Code reads and
+     * the skills where it does not look. The handshake is the one moment the
+     * server learns which client it serves, `D-DIS-033`.
+     */
+    #[Decision('D-DIS-033')]
+    #[Test]
+    public function aClientThatReadsNoPublishedSkillsIsToldTheCommandThatWritesThem(): void
+    {
+        $directory = $this->directory();
+
+        try {
+            $stdout = '';
+            $stderr = '';
+            self::assertSame(0, $this->execute($directory, ['install'], $stdout, $stderr), $stderr);
+            self::assertStringContainsString('install --agent=claude', $stdout);
+
+            $unread = sprintf(Installer::UNREAD, 'claude');
+            self::assertStringStartsWith($unread, $this->instructions($directory, 'claude-code'));
+            // A client that reads .agents/skills, and one nobody has mapped,
+            // hear nothing.
+            self::assertStringNotContainsString('--agent=', $this->instructions($directory, 'antigravity-client'));
+            self::assertStringNotContainsString('--agent=', $this->instructions($directory, 'phpunit'));
+
+            self::assertSame(0, $this->execute($directory, ['install', '--agent=claude'], $stdout, $stderr), $stderr);
+            self::assertStringNotContainsString($unread, $this->instructions($directory, 'claude-code'));
+        } finally {
+            Directory::remove($directory);
+        }
+    }
+
     #[Test]
     public function generalIsNotAClientOptionOfItsOwn(): void
     {
@@ -276,8 +307,13 @@ final class InstallerRecordTest extends TestCase
     }
 
     /** @param list<string> $arguments */
-    private function execute(string $directory, array $arguments, string &$stdout, string &$stderr): int
-    {
+    private function execute(
+        string $directory,
+        array $arguments,
+        string &$stdout,
+        string &$stderr,
+        string $input = '',
+    ): int {
         $process = proc_open(
             [PHP_BINARY, Paths::root() . '/bin/typo3-dev-companion', ...$arguments],
             [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
@@ -285,6 +321,7 @@ final class InstallerRecordTest extends TestCase
             $directory,
         );
         self::assertIsResource($process);
+        fwrite($pipes[0], $input);
         fclose($pipes[0]);
         $stdout = (string) stream_get_contents($pipes[1]);
         $stderr = (string) stream_get_contents($pipes[2]);
@@ -292,6 +329,22 @@ final class InstallerRecordTest extends TestCase
         fclose($pipes[2]);
 
         return proc_close($process);
+    }
+
+    /** The instructions the server hands a client of that name at initialize. */
+    private function instructions(string $directory, string $client): string
+    {
+        $stdout = '';
+        $stderr = '';
+        $request = json_encode(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'initialize', 'params' => [
+            'protocolVersion' => '2025-06-18',
+            'capabilities' => new \stdClass(),
+            'clientInfo' => ['name' => $client, 'version' => '1'],
+        ]], JSON_THROW_ON_ERROR);
+        $this->execute($directory, [], $stdout, $stderr, $request . "\n");
+        $response = json_decode(strtok($stdout, "\n") ?: '', true);
+
+        return is_array($response) ? (string) ($response['result']['instructions'] ?? '') : '';
     }
 
     private function directory(): string

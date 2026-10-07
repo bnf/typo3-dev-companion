@@ -42,6 +42,21 @@ final class Installer
      */
     public const REFRESHED = 'The task skills here were stale and have just been refreshed; reload any you loaded. ';
     /**
+     * What stands there where the project has skills and the client that
+     * connected reads none of them. `%s` is that client's `--agent=` value.
+     */
+    public const UNREAD = 'This client has no task skills here; run typo3-dev-companion install --agent=%s. ';
+    /**
+     * The `clientInfo.name` a client sends at initialize, by the `--agent=`
+     * value that sets it up. Only the names a recorded session showed:
+     * `scenarios/runs/` for Claude Code, `feedback/archive/2026-10-06-131817`
+     * for Antigravity (`D-DIS-033`).
+     */
+    private const CLIENTS = [
+        'claude-code' => 'claude',
+        'antigravity-client' => 'antigravity',
+    ];
+    /**
      * What a directory this package owns says to git about itself. Everything
      * below it, this file included, so the directory is invisible and it owes
      * no line to anybody else's file.
@@ -179,7 +194,9 @@ final class Installer
         self::GENERIC => '.mcp.json is read by more than one client and what is left is each '
             . 'one\'s own; install --agent=<client> says it for that client. Claude Code, which '
             . 'reads this file at project scope, reads it when a session starts and asks you to '
-            . 'approve a project server the first time it sees one.',
+            . 'approve a project server the first time it sees one. It reads skills from '
+            . '.claude/skills and not from .agents/skills, so it has the server and none of the '
+            . 'skills until install --agent=claude runs.',
         'claude' => 'Claude Code reads .mcp.json when a session starts, so a session that was '
             . 'already open does not have this entry yet, and it asks you to approve a project '
             . 'server the first time it sees one: approve at that prompt or in /mcp, and run '
@@ -296,6 +313,40 @@ final class Installer
      * those ignore themselves). And a digest that no longer matches, which a
      * record from before the digest existed counts as.
      */
+    /**
+     * The notice for a client that reads no skills directory `install` wrote
+     * into, or '' where it reads one or is not a client this package knows.
+     *
+     * A setup that names no client writes `.mcp.json`, which Claude Code
+     * reads, and the skills to `.agents/skills`, which it does not. So the
+     * server reached the session and the skills did not, and nothing said so
+     * (`D-DIS-033`). A project without a record is `ABSENT`'s case.
+     */
+    public static function unread(string $project, string $client): string
+    {
+        $agent = self::CLIENTS[$client] ?? null;
+        if ($agent === null || self::absent($project)) {
+            return '';
+        }
+        $read = self::definition($agent)['skills'];
+        foreach (self::readState($project)['agents'] as $installed) {
+            if (self::definition($installed)['skills'] === $read) {
+                return '';
+            }
+        }
+
+        return sprintf(self::UNREAD, $agent);
+    }
+
+    /** The longest notice `unread()` returns, which the budget is measured with. */
+    public static function longestUnread(): string
+    {
+        $agents = array_values(self::CLIENTS);
+        usort($agents, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
+
+        return sprintf(self::UNREAD, $agents[0]);
+    }
+
     /** Whether `install` never recorded a client or a skill in the project. */
     public static function absent(string $project): bool
     {

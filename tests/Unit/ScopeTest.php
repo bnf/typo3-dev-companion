@@ -365,6 +365,7 @@ final class ScopeTest extends TestCase
     #[Decision('D-AUD-012')]
     #[Decision('D-DIS-013')]
     #[Decision('D-DIS-029')]
+    #[Decision('D-DIS-033')]
     #[Test]
     public function theInstructionsFitWhatAClientKeeps(): void
     {
@@ -387,6 +388,14 @@ final class ScopeTest extends TestCase
             mb_strlen(Installer::NOTICE),
             mb_strlen(Installer::ABSENT),
             'the notice for a project without skills stands where the stale one stands, so it may not be longer',
+        );
+        // The notice for a client that reads none of the published skills
+        // stands there too, and its client name makes it the longest
+        // (`D-DIS-033`).
+        self::assertLessThanOrEqual(
+            Coverage::INSTRUCTIONS_BUDGET,
+            mb_strlen(Coverage::instructions(Installer::longestUnread())),
+            'instructions for a client that reads no published skills',
         );
 
         // The measure takes the prefix that names the exclusions too, because

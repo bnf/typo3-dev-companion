@@ -78,3 +78,17 @@ called nothing on this server. It read the change with curl and git instead.
   Then the URL has to be read and not removed.
 - The `git log` line names commits that did not cause the conflict on most stale
   changes. Then a path filter is the wrong narrowing.
+
+## Since then
+
+The first **Wrong if** fired on 2026-10-07 (`feedback/2026-10-07-074922`). A
+session with the index line read the change with curl again. The cause was
+`install` without `--agent`: Claude Code had the server and no skill, which
+`D-DIS-033` answers.
+
+The fix stands. The scope, intent and link fixes correct answers that were wrong
+for every session, and the review skill's first step calls `typo3_task_guide`.
+The index line is unproven rather than disproved, because its one test ran
+without skills. The feedback's other levers stay unbuilt. A rule ahead of the
+index needs room the budget lacks, a line about deferred schemas is one
+`D-AUD-011` rules out, and the core's `AGENTS.md` is the core's.
