@@ -66,3 +66,12 @@ server and none of the skills, and nothing said so.
 - A session gets the notice and neither it nor the user runs the command.
 - A client changes its name, and a project that lacks its skills is silent
   again.
+
+## Since then
+
+Tried on 2026-10-07 in the checkout behind the feedback, with the record at
+`generic` again. The notice reached the session, and the transcript holds it.
+The user saw nothing at start, because Claude Code shows its user neither the
+instructions nor stderr. The session passed it on only when the user asked. So
+`UNREAD` now asks the session to tell the user, in the same length. The second
+**Assumed** is now the open question: whether a session says it unasked.

@@ -44,8 +44,10 @@ final class Installer
     /**
      * What stands there where the project has skills and the client that
      * connected reads none of them. `%s` is that client's `--agent=` value.
+     * Addressed to the user through the session, because a client shows its
+     * user neither the instructions nor stderr (`D-DIS-033`).
      */
-    public const UNREAD = 'This client has no task skills here; run typo3-dev-companion install --agent=%s. ';
+    public const UNREAD = 'Tell the user: run typo3-dev-companion install --agent=%s, this client has no skills. ';
     /**
      * The `clientInfo.name` a client sends at initialize, by the `--agent=`
      * value that sets it up. Only the names a recorded session showed:
